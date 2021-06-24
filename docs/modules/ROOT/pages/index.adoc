@@ -1,0 +1,5 @@
+= registry-cache
+
+registry-cache is a Commodore component to manage registry-cache.
+
+See the xref:references/parameters.adoc[parameters] reference for further details.

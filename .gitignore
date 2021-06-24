@@ -1,0 +1,7 @@
+_archive/
+_public/
+.cache/
+helmcharts/
+manifests/
+vendor/
+jsonnetfile.lock.json

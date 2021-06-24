@@ -1,0 +1,4 @@
+parameters:
+  registry_cache:
+    =_metadata: {}
+    namespace: syn-registry-cache

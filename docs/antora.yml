@@ -1,0 +1,6 @@
+name: registry-cache
+title: registry-cache
+version: master
+start_page: ROOT:index.adoc
+nav:
+  - modules/ROOT/partials/nav.adoc
