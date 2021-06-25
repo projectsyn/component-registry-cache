@@ -17,3 +17,100 @@ The namespace in which to deploy this component.
 ----
 namespace: example-namespace
 ----
+
+
+== `fqdn`
+
+[horizontal]
+type:: string
+default:: `dockerhub.vshn.net`
+
+FQDN under which the registry will be served
+
+
+== `expose_type`
+
+[horizontal]
+type:: string
+default:: `ingress`
+possible values:: `ingress` or `route`
+
+Whether to use an `Ingress` or `Route` object to expose the registry.
+
+== `redis.enabled`
+
+[horizontal]
+type:: bool
+default:: `true`
+
+Whether or not to deploy and use redis as a Blob descriptor cache
+
+== `redis.memory`
+
+[horizontal]
+type:: bytes
+default:: `1G`
+
+Max amount of memory Redis may consume.
+
+
+== `registry.config.storage.s3.bucket`, `registry.config.storage.s3.regionendpoint`
+
+[horizontal]
+type:: strings
+mandatory:: **yes**
+
+S3 configuration for the image store
+
+=== Example
+
+[source,yaml]
+----
+s3:
+  bucket: example-harbor-instance-data
+  endpoint: https://s3.example.com/
+----
+
+
+== `registry.config.storage.s3.accesskey`, `registry.config.storage.s3.secretkey`
+
+[horizontal]
+type:: strings
+default:: Vault reference
+
+S3 credentials for storing image blobs.
+
+== `http_secret`
+
+[horizontal]
+type:: string
+default:: Vault reference
+
+HTTP Session secret. Must be set but is only used internally.
+
+== Vault secrets
+
+[source,bash]
+----
+# Adjust to your environment
+key="clusters/kv/${TENANT_ID}/${CLUSTER_ID}/registry-cache"
+
+# Query for existing secrets first
+vault kv get "${key}"
+
+# If there are existing secrets, add your instance secrets:
+vault kv patch "${key}" \
+  http_secret=$(pwgen 32 1) \
+  proxy_username=DOCKER_HUB_USERNAME \
+  proxy_password=DOCKER_HUB_PASSWORD \
+  s3_accesskey=S3_ACCESS_KEY \
+  s3_secretkey=S3_SECRET_KEY
+
+# If there is no pre-existing secret, create new:
+vault kv put "${key}" \
+  http_secret=$(pwgen 32 1) \
+  proxy_username=DOCKER_HUB_USERNAME \
+  proxy_password=DOCKER_HUB_PASSWORD \
+  s3_accesskey=S3_ACCESS_KEY \
+  s3_secretkey=S3_SECRET_KEY
+----
