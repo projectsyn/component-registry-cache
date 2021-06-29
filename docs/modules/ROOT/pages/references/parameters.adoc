@@ -10,15 +10,6 @@ default:: `syn-registry-cache`
 
 The namespace in which to deploy this component.
 
-
-== Example
-
-[source,yaml]
-----
-namespace: example-namespace
-----
-
-
 == `fqdn`
 
 [horizontal]
@@ -36,6 +27,12 @@ default:: `ingress`
 possible values:: `ingress` or `route`
 
 Whether to use an `Ingress` or `Route` object to expose the registry.
+
+== `http_secret`
+
+[horizontal]
+type:: string
+default:: Vault reference
 
 == `redis.enabled`
 
@@ -62,15 +59,6 @@ mandatory:: **yes**
 
 S3 configuration for the image store
 
-=== Example
-
-[source,yaml]
-----
-s3:
-  bucket: example-harbor-instance-data
-  endpoint: https://s3.example.com/
-----
-
 
 == `registry.config.storage.s3.accesskey`, `registry.config.storage.s3.secretkey`
 
@@ -80,13 +68,16 @@ default:: Vault reference
 
 S3 credentials for storing image blobs.
 
-== `http_secret`
+HTTP Session secret. Must be set but is only used internally.
+
+== `registry.metrics.enabled`
 
 [horizontal]
-type:: string
-default:: Vault reference
+type:: boolean
+default:: `false`
 
-HTTP Session secret. Must be set but is only used internally.
+Whether or not to enable the built-in prometheus exporter for the registry, and create a ServiceMonitor for it.
+
 
 == Vault secrets
 
@@ -113,4 +104,23 @@ vault kv put "${key}" \
   proxy_password=DOCKER_HUB_PASSWORD \
   s3_accesskey=S3_ACCESS_KEY \
   s3_secretkey=S3_SECRET_KEY
+----
+
+
+== Example
+
+[source,yaml]
+----
+  registry_cache:
+    fqdn: dockerhub.example.com
+    expose_type: ingress
+    redis:
+      enabled: true
+    registry:
+      metrics:
+        enabled: true
+        storage:
+          s3:
+            endpoint: 'https://s3.example.com'
+            bucket: registry-data
 ----
