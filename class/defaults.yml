@@ -49,6 +49,8 @@ parameters:
           host: 'https://${registry_cache:fqdn}'
           secret: '${registry_cache:http_secret}'
         storage:
+          delete:
+            enabled: true
           s3:
             region: eu-central-1
             regionendpoint: 'https://objects.rma.cloudscale.ch'
