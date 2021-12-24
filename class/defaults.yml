@@ -22,7 +22,7 @@ parameters:
       memory: 1G
       resources:
         requests:
-          memory: '100m'
+          memory: '100Mi'
           cpu: '100m'
         limits:
           memory: '${registry_cache:redis:memory}'
