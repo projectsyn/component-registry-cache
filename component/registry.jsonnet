@@ -15,7 +15,7 @@ local commonLabels = {
 local config = params.registry.config {
   version: '0.1',
   http+: {
-    [if params.redis.enabled then 'debug']: {
+    [if params.registry.metrics.enabled then 'debug']: {
       addr: '0.0.0.0:6000',
       prometheus: {
         enabled: true,
@@ -94,6 +94,9 @@ local registryService = kube.Service('registry') {
     ports: [ {
       name: 'http',
       port: 5000,
+    }, {
+      name: 'metrics',
+      port: 6000,
     } ],
     selector: {
       'app.kubernetes.io/component': 'registry',
@@ -164,9 +167,35 @@ else
   error 'parameters.registry_cache.expose_type must be either "route" or "ingress"'
 ;
 
+local registryMonitor = kube._Object('monitoring.coreos.com/v1', 'ServiceMonitor', 'registry-cache') {
+  metadata+: {
+    namespace: params.namespace,
+    labels: commonLabels {
+      'app.kubernetes.io/component': 'registry',
+    },
+  },
+  spec: {
+    endpoints: [ {
+      port: 'metrics',
+      path: '/metrics',
+      interval: '60s',
+      scrapeTimeout: '30s',
+    } ],
+    jobLabel: 'registry-cache',
+    namespaceSelector: {
+      matchNames: [ params.namespace ],
+    },
+    selector: {
+      matchLabels: commonLabels {
+        'app.kubernetes.io/component': 'registry',
+      },
+    },
+  },
+};
+
 [
   registryConfig,
   registryDeployment,
   registryService,
   registryExpose,
-]
+] + if params.registry.metrics.enabled then [ registryMonitor ] else []

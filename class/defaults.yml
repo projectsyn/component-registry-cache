@@ -36,6 +36,8 @@ parameters:
         save ""
 
     registry:
+      metrics:
+        enabled: false
       resources:
         requests:
           memory: '200Mi'

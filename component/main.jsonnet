@@ -13,7 +13,9 @@ local commonLabels = {
 
 local namespace = kube.Namespace(params.namespace) {
   metadata+: {
-    labels: commonLabels,
+    labels: commonLabels {
+      SYNMonitoring: 'main',
+    },
   },
 };
 
