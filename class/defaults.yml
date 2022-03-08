@@ -36,6 +36,7 @@ parameters:
         save ""
 
     registry:
+      pullSecretName: ~
       resources:
         requests:
           memory: '200Mi'

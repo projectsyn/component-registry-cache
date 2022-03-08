@@ -53,6 +53,19 @@ default:: `1G`
 
 Max amount of memory Redis may consume.
 
+== `registry.pullSecretName`
+
+[horizontal]
+type:: string
+default:: `~`
+
+The name of an image pull secret to use, if not null.
+
+[NOTE]
+====
+We currently don't support generating an image pull secret from the component, as we don't have a way to generate the required contents from Vault secrets.
+Instead, we provide this parameter so that users can tell the component to configure the deployment with an externally-managed image pull secret.
+====
 
 == `registry.config.storage.s3.bucket`, `registry.config.storage.s3.regionendpoint`
 
