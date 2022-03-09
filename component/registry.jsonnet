@@ -71,6 +71,11 @@ local registryDeployment = kube.Deployment('registry') {
             resources: params.registry.resources,
           },
         },
+        [if params.registry.pullSecretName != null then 'imagePullSecrets']: [
+          {
+            name: params.registry.pullSecretName,
+          },
+        ],
         volumes_: {
           config: {
             secret: {
