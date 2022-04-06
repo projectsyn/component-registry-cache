@@ -15,7 +15,7 @@ parameters:
     fqdn: dockerhub.example.com
     replicas: 2
 
-    http_secret: '?{vaultkv:${customer:name}/${cluster:name}/registry-cache/http_secret}'
+    http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
 
     redis:
       enabled: true
@@ -55,12 +55,12 @@ parameters:
           s3:
             region: eu-central-1
             regionendpoint: 'https://objects.rma.cloudscale.ch'
-            bucket: '${customer:name}-${cluster:name}-registry-mirror-data'
-            accesskey: '?{vaultkv:${customer:name}/${cluster:name}/registry-cache/s3_accesskey}'
-            secretkey: '?{vaultkv:${customer:name}/${cluster:name}/registry-cache/s3_secretkey}'
+            bucket: '${cluster:tenant}-${cluster:name}-registry-mirror-data'
+            accesskey: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/s3_accesskey}'
+            secretkey: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/s3_secretkey}'
         proxy:
           remoteurl: 'https://registry-1.docker.io'
-          username: '?{vaultkv:${customer:name}/${cluster:name}/registry-cache/proxy_username}'
-          password: '?{vaultkv:${customer:name}/${cluster:name}/registry-cache/proxy_password}'
+          username: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_username}'
+          password: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_password}'
 
     expose_type: ingress
