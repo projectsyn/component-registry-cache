@@ -11,6 +11,16 @@ local commonLabels = {
   'app.kubernetes.io/part-of': 'syn',
 };
 
+local pullSecret =
+  if std.objectHas(params.registry, 'pullSecretName') then
+    std.trace(
+      'Parameter `registry.pullSecretName` is deprecated,'
+      + ' please use parameter `imagePullSecretName` instead',
+      params.registry.pullSecretName
+    )
+  else
+    params.imagePullSecretName;
+
 // see: https://docs.docker.com/registry/configuration/
 local config = params.registry.config {
   version: '0.1',
@@ -71,9 +81,9 @@ local registryDeployment = kube.Deployment('registry') {
             resources: params.registry.resources,
           },
         },
-        [if params.registry.pullSecretName != null then 'imagePullSecrets']: [
+        [if pullSecret != null then 'imagePullSecrets']: [
           {
-            name: params.registry.pullSecretName,
+            name: pullSecret,
           },
         ],
         volumes_: {

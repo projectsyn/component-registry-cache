@@ -16,6 +16,7 @@ parameters:
     replicas: 2
 
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
+    imagePullSecretName: ~
 
     redis:
       enabled: true
@@ -36,7 +37,6 @@ parameters:
         save ""
 
     registry:
-      pullSecretName: ~
       resources:
         requests:
           memory: '200Mi'

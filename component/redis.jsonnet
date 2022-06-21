@@ -78,6 +78,11 @@ local redisDeployment = kube.Deployment('redis') {
             },
           },
         },
+        [if params.imagePullSecretName != null then 'imagePullSecrets']: [
+          {
+            name: params.imagePullSecretName,
+          },
+        ],
         volumes: [ {
           configMap: {
             defaultMode: 420,
