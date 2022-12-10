@@ -15,6 +15,7 @@ local namespace = kube.Namespace(params.namespace) {
   metadata+: {
     labels: commonLabels {
       SYNMonitoring: 'main',
+      'openshift.io/cluster-monitoring': 'true',
     },
   },
 };
