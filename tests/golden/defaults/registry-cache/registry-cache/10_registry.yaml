@@ -1,0 +1,153 @@
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry-config
+  namespace: syn-registry-cache
+stringData:
+  config.yml: |-
+    "http":
+      "addr": "0.0.0.0:5000"
+      "debug":
+        "addr": "0.0.0.0:6000"
+        "prometheus":
+          "enabled": true
+      "host": "https://dockerhub.example.com"
+      "secret": "t-silent-test-1234/c-green-test-1234/registry-cache/http_secret"
+    "proxy":
+      "password": "t-silent-test-1234/c-green-test-1234/registry-cache/proxy_password"
+      "remoteurl": "https://registry-1.docker.io"
+      "username": "t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username"
+    "redis":
+      "addr": "redis:6379"
+    "storage":
+      "cache":
+        "blobdescriptor": "redis"
+      "delete":
+        "enabled": true
+      "s3":
+        "accesskey": "t-silent-test-1234/c-green-test-1234/registry-cache/s3_accesskey"
+        "bucket": "t-silent-test-1234-c-green-test-1234-registry-mirror-data"
+        "region": "eu-central-1"
+        "regionendpoint": "https://objects.rma.cloudscale.ch"
+        "secretkey": "t-silent-test-1234/c-green-test-1234/registry-cache/s3_secretkey"
+    "version": "0.1"
+type: Opaque
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry
+  namespace: syn-registry-cache
+spec:
+  minReadySeconds: 30
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+      app.kubernetes.io/managed-by: commodore
+      app.kubernetes.io/name: registry-cache
+      app.kubernetes.io/part-of: syn
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app.kubernetes.io/component: registry
+        app.kubernetes.io/managed-by: commodore
+        app.kubernetes.io/name: registry-cache
+        app.kubernetes.io/part-of: syn
+    spec:
+      containers:
+        - args: []
+          env: []
+          image: docker.io/library/registry:2
+          imagePullPolicy: IfNotPresent
+          name: registry
+          ports:
+            - containerPort: 5000
+              name: http
+          resources:
+            limits:
+              cpu: 200m
+              memory: 400Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/docker/registry
+              name: config
+      imagePullSecrets: []
+      initContainers: []
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          secret:
+            secretName: registry-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry
+  namespace: syn-registry-cache
+spec:
+  ports:
+    - name: http
+      port: 5000
+  selector:
+    app.kubernetes.io/component: registry
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry
+  namespace: syn-registry-cache
+spec:
+  rules:
+    - host: dockerhub.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: registry
+                port:
+                  name: http
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - dockerhub.example.com
+      secretName: registry-tls

@@ -4,6 +4,9 @@ on:
     branches:
       - master
 
+env:
+  COMPONENT_NAME: registry-cache
+
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -12,15 +15,45 @@ jobs:
         command:
           - lint_jsonnet
           - lint_yaml
-          - docs-vale
+          - lint_adoc
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run ${{ matrix.command }}
         run: make ${{ matrix.command }}
   editorconfig:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: snow-actions/eclint@v1.0.1
         with:
           args: 'check'
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance:
+          - defaults
+    defaults:
+      run:
+        working-directory: ${{ env.COMPONENT_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ env.COMPONENT_NAME }}
+      - name: Compile component
+        run: make test -e instance=${{ matrix.instance }}
+  golden:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance:
+          - defaults
+    defaults:
+      run:
+        working-directory: ${{ env.COMPONENT_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ env.COMPONENT_NAME }}
+      - name: Golden diff
+        run: make golden-diff -e instance=${{ matrix.instance }}
