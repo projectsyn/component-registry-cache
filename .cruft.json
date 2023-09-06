@@ -1,0 +1,25 @@
+{
+  "template": "https://github.com/projectsyn/commodore-component-template.git",
+  "commit": "60af5994920f4861423d6361eb39256a3930e968",
+  "checkout": "main",
+  "context": {
+    "cookiecutter": {
+      "name": "registry-cache",
+      "slug": "registry-cache",
+      "parameter_key": "registry_cache",
+      "test_cases": "defaults",
+      "add_lib": "n",
+      "add_pp": "n",
+      "add_golden": "y",
+      "add_matrix": "y",
+      "add_go_unit": "n",
+      "copyright_holder": "VSHN AG <info@vshn.ch>",
+      "copyright_year": "2021",
+      "github_owner": "projectsyn",
+      "github_name": "component-registry-cache",
+      "github_url": "https://github.com/projectsyn/component-registry-cache",
+      "_template": "https://github.com/projectsyn/commodore-component-template.git"
+    }
+  },
+  "directory": null
+}

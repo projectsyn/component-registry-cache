@@ -5,50 +5,80 @@ SHELL := bash
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
-DOCKER_CMD   ?= docker
-DOCKER_ARGS  ?= run --rm --user "$$(id -u)" -v "$${PWD}:/component" --workdir /component
+include Makefile.vars.mk
 
-JSONNET_FILES   ?= $(shell find . -type f -not -path './vendor/*' \( -name '*.*jsonnet' -or -name '*.libsonnet' \))
-JSONNETFMT_ARGS ?= --in-place --pad-arrays
-JSONNET_IMAGE   ?= docker.io/bitnami/jsonnet:latest
-JSONNET_DOCKER  ?= $(DOCKER_CMD) $(DOCKER_ARGS) --entrypoint=jsonnetfmt $(JSONNET_IMAGE)
-
-YAML_FILES      ?= $(shell find . -type f -not -path './vendor/*' \( -name '*.yaml' -or -name '*.yml' \))
-YAMLLINT_ARGS   ?= --no-warnings
-YAMLLINT_CONFIG ?= .yamllint.yml
-YAMLLINT_IMAGE  ?= docker.io/cytopia/yamllint:latest
-YAMLLINT_DOCKER ?= $(DOCKER_CMD) $(DOCKER_ARGS) $(YAMLLINT_IMAGE)
-
-VALE_CMD  ?= $(DOCKER_CMD) $(DOCKER_ARGS) --volume "$${PWD}"/docs/modules:/pages vshn/vale:2.1.1
-VALE_ARGS ?= --minAlertLevel=error --config=/pages/ROOT/pages/.vale.ini /pages
-
-ANTORA_PREVIEW_CMD ?= $(DOCKER_CMD) run --rm --publish 2020:2020 --volume "${PWD}":/antora vshn/antora-preview:2.3.3 --style=syn --antora=docs
+.PHONY: help
+help: ## Show this help
+	@grep -E -h '\s##\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = "(: ).*?## "}; {gsub(/\\:/,":", $$1)}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: all
-all: lint open
+all: lint
 
 .PHONY: lint
-lint: lint_jsonnet lint_yaml docs-vale
+lint: lint_jsonnet lint_yaml lint_adoc lint_kubent ## All-in-one linting
 
 .PHONY: lint_jsonnet
-lint_jsonnet: $(JSONNET_FILES)
+lint_jsonnet: $(JSONNET_FILES) ## Lint jsonnet files
 	$(JSONNET_DOCKER) $(JSONNETFMT_ARGS) --test -- $?
 
 .PHONY: lint_yaml
-lint_yaml: $(YAML_FILES)
-	$(YAMLLINT_DOCKER) -f parsable -c $(YAMLLINT_CONFIG) $(YAMLLINT_ARGS) -- $?
+lint_yaml: ## Lint yaml files
+	$(YAMLLINT_DOCKER) -f parsable -c $(YAMLLINT_CONFIG) $(YAMLLINT_ARGS) -- .
+
+.PHONY: lint_adoc
+lint_adoc: ## Lint documentation
+	$(VALE_CMD) $(VALE_ARGS)
+.PHONY: lint_kubent
+lint_kubent: ## Check for deprecated Kubernetes API versions
+	$(KUBENT_DOCKER) $(KUBENT_ARGS) -f $(KUBENT_FILES)
 
 .PHONY: format
-format: format_jsonnet
+format: format_jsonnet ## All-in-one formatting
 
 .PHONY: format_jsonnet
-format_jsonnet: $(JSONNET_FILES)
+format_jsonnet: $(JSONNET_FILES) ## Format jsonnet files
 	$(JSONNET_DOCKER) $(JSONNETFMT_ARGS) -- $?
 
 .PHONY: docs-serve
-docs-serve:
+docs-serve: ## Preview the documentation
 	$(ANTORA_PREVIEW_CMD)
 
-.PHONY: docs-vale
-docs-vale:
-	$(VALE_CMD) $(VALE_ARGS)
+.PHONY: compile
+.compile:
+	mkdir -p dependencies
+	$(COMPILE_CMD)
+
+.PHONY: test
+test: commodore_args += -f tests/$(instance).yml
+test: .compile ## Compile the component
+.PHONY: gen-golden
+gen-golden: commodore_args += -f tests/$(instance).yml
+gen-golden: clean .compile ## Update the reference version for target `golden-diff`.
+	@rm -rf tests/golden/$(instance)
+	@mkdir -p tests/golden/$(instance)
+	@cp -R compiled/. tests/golden/$(instance)/.
+
+.PHONY: golden-diff
+golden-diff: commodore_args += -f tests/$(instance).yml
+golden-diff: clean .compile ## Diff compile output against the reference version. Review output and run `make gen-golden golden-diff` if this target fails.
+	@git diff --exit-code --minimal --no-index -- tests/golden/$(instance) compiled/
+
+.PHONY: golden-diff-all
+golden-diff-all: recursive_target=golden-diff
+golden-diff-all: $(test_instances) ## Run golden-diff for all instances. Note: this doesn't work when running make with multiple parallel jobs (-j != 1).
+
+.PHONY: gen-golden-all
+gen-golden-all: recursive_target=gen-golden
+gen-golden-all: $(test_instances) ## Run gen-golden for all instances. Note: this doesn't work when running make with multiple parallel jobs (-j != 1).
+
+.PHONY: lint_kubent_all
+lint_kubent_all: recursive_target=lint_kubent
+lint_kubent_all: $(test_instances) ## Lint deprecated Kubernetes API versions for all golden test instances. Will exit on first error. Note: this doesn't work when running make with multiple parallel jobs (-j != 1).
+
+.PHONY: $(test_instances)
+$(test_instances):
+	$(MAKE) $(recursive_target) -e instance=$(basename $(@F))
+
+.PHONY: clean
+clean: ## Clean the project
+	rm -rf .cache compiled dependencies vendor helmcharts jsonnetfile*.json || true

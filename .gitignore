@@ -1,8 +1,15 @@
-_archive/
-_public/
-.cache/
-helmcharts/
-manifests/
-vendor/
-jsonnetfile.json
-jsonnetfile.lock.json
+# Commodore
+/.cache
+/dependencies
+/helmcharts
+/manifests
+/vendor
+/jsonnetfile.lock.json
+/crds
+/compiled
+
+# Antora
+/_archive
+/_public
+
+# Additional entries
