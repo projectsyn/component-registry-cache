@@ -59,7 +59,7 @@ spec:
             - redis-server
             - /etc/redis/redis.conf
           env: []
-          image: docker.io/library/redis:6.2.12
+          image: docker.io/library/redis:6.2.14
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 5
