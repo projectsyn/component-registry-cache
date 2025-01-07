@@ -1,6 +1,7 @@
 parameters:
   registry_cache:
-    =_metadata: {}
+    =_metadata:
+      multi_tenant: true
 
     namespace: syn-registry-cache
 
