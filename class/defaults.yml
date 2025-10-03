@@ -11,7 +11,7 @@ parameters:
         tag: 2
       redis:
         image: docker.io/library/redis
-        tag: '6.2.19'
+        tag: '6.2.20'
 
     fqdn: dockerhub.example.com
     replicas: 2
