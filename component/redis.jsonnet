@@ -36,7 +36,7 @@ local redisDeployment = kube.Deployment('redis') {
       spec+: {
         containers_+: {
           redis: kube.Container('redis') {
-            image: params.images.redis.image + ':' + params.images.redis.tag,
+            image: '%(registry)s/%(repository)s:%(tag)s' % params.images.redis,
             command: [
               'redis-server',
               '/etc/redis/redis.conf',

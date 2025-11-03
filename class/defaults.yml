@@ -10,28 +10,29 @@ parameters:
         image: docker.io/library/registry
         tag: 2
       redis:
-        image: docker.io/library/redis
+        registry: docker.io
+        repository: library/redis
         tag: '6.2.21'
 
-    fqdn: dockerhub.example.com
     replicas: 2
+    expose_type: ingress
+    fqdn: dockerhub.example.com
 
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
     imagePullSecretName: ~
 
     redis:
       enabled: true
-      memory: 1G
       resources:
         requests:
-          memory: '100Mi'
-          cpu: '100m'
+          memory: 100Mi
+          cpu: 100m
         limits:
-          memory: '${registry_cache:redis:memory}'
-          cpu: '200m'
+          memory: 1Gi
+          cpu: 200m
       config: |-
         # Max memory usage
-        maxmemory ${registry_cache:redis:memory}
+        maxmemory ${registry_cache:redis:resources:limits:memory}
         # Evict oldest keys when out of memory
         maxmemory-policy allkeys-lru
         # Disable persistence entirely
@@ -63,5 +64,3 @@ parameters:
           remoteurl: 'https://registry-1.docker.io'
           username: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_username}'
           password: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_password}'
-
-    expose_type: ingress

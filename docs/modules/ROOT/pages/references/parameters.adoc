@@ -11,14 +11,6 @@ default:: `syn-registry-cache`
 The namespace in which to deploy this component.
 
 
-== Example
-
-[source,yaml]
-----
-namespace: example-namespace
-----
-
-
 == `fqdn`
 
 [horizontal]
@@ -37,6 +29,7 @@ possible values:: `ingress` or `route`
 
 Whether to use an `Ingress` or `Route` object to expose the registry.
 
+
 == `imagePullSecretName`
 
 [horizontal]
@@ -53,21 +46,34 @@ Instead, we provide this parameter so that users can tell the component to confi
 ====
 
 
-== `redis.enabled`
+== `redis`
+
+Configuration of the Redis component.
+
+=== `redis.enabled`
 
 [horizontal]
 type:: bool
 default:: `true`
 
-Whether or not to deploy and use redis as a Blob descriptor cache
+Whether or not to deploy and use redis as a Blob descriptor cache.
 
-== `redis.memory`
+=== `redis.resources`
 
 [horizontal]
-type:: bytes
-default:: `1G`
+type: dict
+default: https://github.com/projectsyn/component-registry-cache/blob/master/class/defaults.yml[See `class/defaults.yml`]
 
-Max amount of memory Redis may consume.
+Configure resource requests and limits for Redis component.
+
+=== `redis.config`
+
+[horizontal]
+type: dict
+default: https://github.com/projectsyn/component-registry-cache/blob/master/class/defaults.yml[See `class/defaults.yml`]
+
+Redis configuration.
+
 
 == `registry.config.storage.s3.bucket`, `registry.config.storage.s3.regionendpoint`
 

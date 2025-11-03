@@ -2,7 +2,7 @@ apiVersion: v1
 data:
   redis.conf: |-
     # Max memory usage
-    maxmemory 1G
+    maxmemory 1Gi
     # Evict oldest keys when out of memory
     maxmemory-policy allkeys-lru
     # Disable persistence entirely
@@ -86,7 +86,7 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 1G
+              memory: 1Gi
             requests:
               cpu: 100m
               memory: 100Mi
