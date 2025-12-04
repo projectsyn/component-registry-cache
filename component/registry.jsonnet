@@ -62,12 +62,12 @@ local registryDeployment = kube.Deployment('registry') {
     },
   },
   spec+: {
-    replicas: params.replicas,
+    replicas: std.get(params, 'replicas', params.registry.replicas),
     template+: {
       spec+: {
         containers_+: {
           registry: kube.Container('registry') {
-            image: params.images.registry.image + ':' + params.images.registry.tag,
+            image: '%(registry)s/%(repository)s:%(tag)s' % params.images.registry,
             ports_: {
               http: {
                 containerPort: 5000,

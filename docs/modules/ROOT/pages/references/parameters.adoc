@@ -80,16 +80,25 @@ default: https://github.com/projectsyn/component-registry-cache/blob/master/clas
 Redis configuration.
 
 
-== `registry.config.storage.s3.bucket`, `registry.config.storage.s3.regionendpoint`
+== `registry`
+
+Configuration of the Registry component.
+
+=== `registry.replicas`
+
+[horizontal]
+type: integer
+default:: 2
+
+Configures how many replicas of the Registry component to deploy.
+
+=== `registry.config.storage.s3.bucket`, `registry.config.storage.s3.regionendpoint`
 
 [horizontal]
 type:: strings
 mandatory:: **yes**
-
-S3 configuration for the image store
-
-=== Example
-
+example::
++
 [source,yaml]
 ----
 s3:
@@ -97,14 +106,16 @@ s3:
   endpoint: https://s3.example.com/
 ----
 
+S3 configuration for the image store
 
-== `registry.config.storage.s3.accesskey`, `registry.config.storage.s3.secretkey`
+=== `registry.config.storage.s3.accesskey`, `registry.config.storage.s3.secretkey`
 
 [horizontal]
 type:: strings
 default:: Vault reference
 
 S3 credentials for storing image blobs.
+
 
 == `http_secret`
 
@@ -113,6 +124,7 @@ type:: string
 default:: Vault reference
 
 HTTP Session secret. Must be set but is only used internally.
+
 
 == Vault secrets
 
