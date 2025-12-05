@@ -50,11 +50,16 @@ spec:
         app.kubernetes.io/part-of: syn
     spec:
       containers:
-        - args: []
-          command:
-            - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory.max
-              ) - 100000000)) --maxmemory-policy allkeys-lru
+        - args:
+            - --appendonly
+            - 'yes'
+            - --maxmemory
+            - '1073741824'
+            - --maxmemory-policy
+            - allkeys-lru
             - /etc/redis/redis.conf
+          command:
+            - redis-server
           env: []
           image: docker.io/library/redis:6.2.21
           imagePullPolicy: IfNotPresent

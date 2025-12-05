@@ -23,6 +23,17 @@ local redisConfig = kube.ConfigMap('redis-config') {
   },
 };
 
+// Converts Kubernetes memory resource string to a number in bytes. `Mi` and `Gi` are supported.
+// 128Mi -> 134217728
+// 1Gi   -> 1073741824
+local bytesFromK8sResourceKey = function(memoryLimit)
+  if std.endsWith(memoryLimit, 'Gi') then
+    std.parseInt(std.substr(memoryLimit, 0, std.length(memoryLimit) - 2)) * 1024 * 1024 * 1024
+  else if std.endsWith(memoryLimit, 'Mi') then
+    std.parseInt(std.substr(memoryLimit, 0, std.length(memoryLimit) - 2)) * 1024 * 1024
+  else
+    error 'Unsupported memory resource format: %s, supported are: Gi, Mi' % memoryLimit;
+
 local redisDeployment = kube.Deployment('redis') {
   metadata+: {
     namespace: params.namespace,
@@ -38,7 +49,17 @@ local redisDeployment = kube.Deployment('redis') {
           redis: kube.Container('redis') {
             image: '%(registry)s/%(repository)s:%(tag)s' % params.images.redis,
             command: [
-              'redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy allkeys-lru',
+              'redis-server',
+            ],
+            local ml = std.get(std.get(params.redis.resources, 'limits', {}), 'memory', null),
+            assert ml != null : 'Redis is used as a LRU cache. Memory limit must be specified in redis resources limits.',
+            args: [
+              '--appendonly',
+              'yes',
+              '--maxmemory',
+              std.toString(bytesFromK8sResourceKey(ml)),
+              '--maxmemory-policy',
+              'allkeys-lru',
               '/etc/redis/redis.conf',
             ],
             ports_+: {

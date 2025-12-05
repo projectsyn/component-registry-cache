@@ -66,6 +66,11 @@ default: https://github.com/projectsyn/component-registry-cache/blob/master/clas
 
 Configure resource requests and limits for Redis component.
 
+[WARNING]
+====
+Memory limit must be specified in the redis resources limits, as Redis is used as a LRU cache.
+====
+
 === `redis.config`
 
 [horizontal]
