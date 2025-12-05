@@ -1,10 +1,6 @@
 apiVersion: v1
 data:
   redis.conf: |-
-    # Max memory usage
-    maxmemory 1Gi
-    # Evict oldest keys when out of memory
-    maxmemory-policy allkeys-lru
     # Disable persistence entirely
     save ""
 kind: ConfigMap
@@ -56,7 +52,8 @@ spec:
       containers:
         - args: []
           command:
-            - redis-server
+            - redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory.max
+              ) - 100000000)) --maxmemory-policy allkeys-lru
             - /etc/redis/redis.conf
           env: []
           image: docker.io/library/redis:6.2.21

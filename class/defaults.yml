@@ -31,10 +31,6 @@ parameters:
           memory: 1Gi
           cpu: 200m
       config: |-
-        # Max memory usage
-        maxmemory ${registry_cache:redis:resources:limits:memory}
-        # Evict oldest keys when out of memory
-        maxmemory-policy allkeys-lru
         # Disable persistence entirely
         save ""
 

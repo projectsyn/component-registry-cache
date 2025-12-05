@@ -38,7 +38,7 @@ local redisDeployment = kube.Deployment('redis') {
           redis: kube.Container('redis') {
             image: '%(registry)s/%(repository)s:%(tag)s' % params.images.redis,
             command: [
-              'redis-server',
+              'redis-server --appendonly yes --maxmemory $$(( $$( cat /sys/fs/cgroup/memory.max ) - 100000000)) --maxmemory-policy allkeys-lru',
               '/etc/redis/redis.conf',
             ],
             ports_+: {
