@@ -17,6 +17,7 @@ stringData:
         "addr": "0.0.0.0:6000"
         "prometheus":
           "enabled": true
+          "path": "/metrics"
       "host": "https://dockerhub.example.com"
       "secret": "t-silent-test-1234/c-green-test-1234/registry-cache/http_secret"
     "proxy":
@@ -24,7 +25,8 @@ stringData:
       "remoteurl": "https://registry-1.docker.io"
       "username": "t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username"
     "redis":
-      "addr": "redis:6379"
+      "addrs":
+      - "redis:6379"
     "storage":
       "cache":
         "blobdescriptor": "redis"
@@ -74,9 +76,11 @@ spec:
         app.kubernetes.io/part-of: syn
     spec:
       containers:
-        - args: []
+        - args:
+            - serve
+            - /etc/distribution/config.yml
           env: []
-          image: docker.io/library/registry:2.8.3
+          image: docker.io/library/registry:3.0.0
           imagePullPolicy: IfNotPresent
           name: registry
           ports:
@@ -92,7 +96,7 @@ spec:
           stdin: false
           tty: false
           volumeMounts:
-            - mountPath: /etc/docker/registry
+            - mountPath: /etc/distribution
               name: config
       imagePullSecrets:
         - name: registry-pull-secret

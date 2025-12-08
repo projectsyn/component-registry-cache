@@ -30,6 +30,7 @@ local config = params.registry.config {
       addr: '0.0.0.0:6000',
       prometheus: {
         enabled: true,
+        path: '/metrics',
       },
     },
   },
@@ -39,7 +40,7 @@ local config = params.registry.config {
     },
   },
   [if params.redis.enabled then 'redis']: {
-    addr: 'redis:6379',
+    addrs: [ 'redis:6379' ],
   },
 };
 
@@ -80,6 +81,10 @@ local registryDeployment = kube.Deployment('registry') {
         containers_+: {
           registry: kube.Container('registry') {
             image: '%(registry)s/%(repository)s:%(tag)s' % params.images.registry,
+            args: [
+              'serve',
+              '/etc/distribution/config.yml',
+            ],
             ports_: {
               http: {
                 containerPort: 5000,
@@ -87,7 +92,7 @@ local registryDeployment = kube.Deployment('registry') {
             },
             volumeMounts_: {
               config: {
-                mountPath: '/etc/docker/registry',
+                mountPath: '/etc/distribution',
               },
             },
             resources: params.registry.resources,
