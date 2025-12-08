@@ -5,7 +5,6 @@ data:
     save ""
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     app.kubernetes.io/component: redis
     app.kubernetes.io/managed-by: commodore
@@ -17,7 +16,6 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations: {}
   labels:
     app.kubernetes.io/component: redis
     app.kubernetes.io/managed-by: commodore
@@ -108,7 +106,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations: {}
   labels:
     app.kubernetes.io/component: redis
     app.kubernetes.io/managed-by: commodore
