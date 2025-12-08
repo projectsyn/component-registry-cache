@@ -54,13 +54,11 @@ local redisDeployment = kube.Deployment('redis') {
             local ml = std.get(std.get(params.redis.resources, 'limits', {}), 'memory', null),
             assert ml != null : 'Redis is used as a LRU cache. Memory limit must be specified in redis resources limits.',
             args: [
-              '--appendonly',
-              'yes',
+              '/etc/redis/redis.conf',
               '--maxmemory',
               std.toString(bytesFromK8sResourceKey(ml)),
               '--maxmemory-policy',
               'allkeys-lru',
-              '/etc/redis/redis.conf',
             ],
             ports_+: {
               http: {

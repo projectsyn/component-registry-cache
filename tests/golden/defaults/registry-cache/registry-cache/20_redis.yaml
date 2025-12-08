@@ -51,13 +51,11 @@ spec:
     spec:
       containers:
         - args:
-            - --appendonly
-            - 'yes'
+            - /etc/redis/redis.conf
             - --maxmemory
             - '1073741824'
             - --maxmemory-policy
             - allkeys-lru
-            - /etc/redis/redis.conf
           command:
             - redis-server
           env: []
