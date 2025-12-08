@@ -13,7 +13,7 @@ parameters:
       redis:
         registry: docker.io
         repository: library/redis
-        tag: '6.2.21'
+        tag: '8.4.0'
 
     expose_type: ingress
     fqdn: dockerhub.example.com
