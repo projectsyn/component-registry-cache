@@ -34,15 +34,41 @@ Whether to use an `Ingress` or `Route` object to expose the registry.
 
 [horizontal]
 type:: string
-default:: `~`
+default:: `registry-pull-secret`
 
 The name of an image pull secret to use, if not null.
 The secret is configured for both the Registry and the Redis deployments.
 
+
+== `imagePullSecret`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+imagePullSecret:
+  type: 'kubernetes.io/dockerconfigjson'
+  stringData:
+    .dockerconfigjson: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/image_pull_secret}'
+----
+
+The image pull secret for pulling from docker.io.
+
 [NOTE]
 ====
-We currently don't support generating an image pull secret from the component, as we don't have a way to generate the required contents from Vault secrets.
-Instead, we provide this parameter so that users can tell the component to configure the deployment with an externally-managed image pull secret.
+This creates a secret of type `kubernetes.io/dockerconfigjson`.
+[source,yaml]
+----
+stringData:
+  .dockerconfigjson: |
+    {
+      "auths": {
+        "docker.io": { xxx }
+      }
+    }
+----
 ====
 
 
