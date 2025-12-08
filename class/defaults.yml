@@ -7,14 +7,14 @@ parameters:
 
     images:
       registry:
-        image: docker.io/library/registry
-        tag: 2
+        registry: docker.io
+        repository: library/registry
+        tag: '2.8.3'
       redis:
         registry: docker.io
         repository: library/redis
         tag: '6.2.21'
 
-    replicas: 2
     expose_type: ingress
     fqdn: dockerhub.example.com
 
@@ -35,13 +35,14 @@ parameters:
         save ""
 
     registry:
+      replicas: 2
       resources:
         requests:
-          memory: '200Mi'
-          cpu: '100m'
+          memory: 200Mi
+          cpu: 100m
         limits:
-          memory: '400Mi'
-          cpu: '200m'
+          memory: 400Mi
+          cpu: 200m
       config:
         http:
           addr: 0.0.0.0:5000
