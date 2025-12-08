@@ -95,7 +95,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/redis
               name: config
-      imagePullSecrets: []
+      imagePullSecrets:
+        - name: registry-pull-secret
       initContainers: []
       terminationGracePeriodSeconds: 30
       volumes:

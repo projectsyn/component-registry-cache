@@ -19,7 +19,11 @@ parameters:
     fqdn: dockerhub.example.com
 
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
-    imagePullSecretName: ~
+    imagePullSecret:
+      type: 'kubernetes.io/dockerconfigjson'
+      stringData:
+        .dockerconfigjson: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/image_pull_secret}'
+    imagePullSecretName: registry-pull-secret
 
     redis:
       enabled: true

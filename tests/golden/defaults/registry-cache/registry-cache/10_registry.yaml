@@ -96,7 +96,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/docker/registry
               name: config
-      imagePullSecrets: []
+      imagePullSecrets:
+        - name: registry-pull-secret
       initContainers: []
       terminationGracePeriodSeconds: 30
       volumes:
@@ -151,3 +152,19 @@ spec:
     - hosts:
         - dockerhub.example.com
       secretName: registry-tls
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-pull-secret
+    app.kubernetes.io/part-of: syn
+  name: registry-pull-secret
+  namespace: syn-registry-cache
+stringData:
+  .dockerconfigjson: t-silent-test-1234/c-green-test-1234/registry-cache/image_pull_secret
+type: kubernetes.io/dockerconfigjson

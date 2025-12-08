@@ -1,4 +1,5 @@
 // main template for registry-cache
+local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local inv = kap.inventory();
@@ -41,6 +42,17 @@ local config = params.registry.config {
     addr: 'redis:6379',
   },
 };
+
+local registryPullSecret = kube.Secret('registry-pull-secret') {
+  metadata+: {
+    namespace: params.namespace,
+    name: params.imagePullSecretName,
+    labels: commonLabels {
+      'app.kubernetes.io/component': 'registry',
+      'app.kubernetes.io/name': 'registry-pull-secret',
+    },
+  },
+} + com.makeMergeable(params.imagePullSecret);
 
 local registryConfig = kube.Secret('registry-config') {
   metadata+: {
@@ -184,4 +196,4 @@ else
   registryDeployment,
   registryService,
   registryExpose,
-]
+] + if params.imagePullSecret != null then [ registryPullSecret ] else []
