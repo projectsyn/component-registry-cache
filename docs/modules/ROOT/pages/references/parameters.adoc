@@ -30,6 +30,15 @@ possible values:: `ingress` or `route`
 Whether to use an `Ingress` or `Route` object to expose the registry.
 
 
+== `htpasswd`
+
+[horizontal]
+type:: string
+default:: `null`
+
+The content of the htpasswd file, used to secure the registry-cache.
+
+
 == `imagePullSecretName`
 
 [horizontal]
