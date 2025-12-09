@@ -1,9 +1,12 @@
 // main template for registry-cache
 local kube = import 'kube-ssa-compat.libsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
-local inv = kap.inventory();
+
 // The hiera parameters for the component
+local inv = kap.inventory();
 local params = inv.parameters.registry_cache;
+
+local isOpenshift = std.member([ 'openshift4', 'oke' ], inv.parameters.facts.distribution);
 
 local commonLabels = {
   'app.kubernetes.io/name': 'registry-cache',
@@ -13,7 +16,11 @@ local commonLabels = {
 
 local namespace = kube.Namespace(params.namespace) {
   metadata+: {
-    labels: commonLabels,
+    labels: commonLabels {
+      // Configure the namespaces so that the OCP4 cluster-monitoring
+      // Prometheus can find the servicemonitors and rules.
+      [if isOpenshift then 'openshift.io/cluster-monitoring']: 'true',
+    },
   },
 };
 

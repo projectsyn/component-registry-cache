@@ -65,3 +65,5 @@ parameters:
           remoteurl: 'https://registry-1.docker.io'
           username: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_username}'
           password: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/proxy_password}'
+
+    rules: {}

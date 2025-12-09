@@ -86,6 +86,8 @@ spec:
           ports:
             - containerPort: 5000
               name: http
+            - containerPort: 6000
+              name: metrics
           resources:
             limits:
               cpu: 200m
@@ -121,9 +123,38 @@ spec:
   ports:
     - name: http
       port: 5000
+    - name: metrics
+      port: 6000
   selector:
     app.kubernetes.io/component: registry
   type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry-cache
+  namespace: syn-registry-cache
+spec:
+  endpoints:
+    - interval: 60s
+      path: /metrics
+      port: metrics
+      scrapeTimeout: 30s
+  jobLabel: registry-cache
+  namespaceSelector:
+    matchNames:
+      - syn-registry-cache
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+      app.kubernetes.io/managed-by: commodore
+      app.kubernetes.io/name: registry-cache
+      app.kubernetes.io/part-of: syn
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
