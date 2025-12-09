@@ -1,7 +1,7 @@
 // main template for registry-cache
 local kube = import 'kube-ssa-compat.libsonnet';
-local kap = import 'lib/kapitan.libjsonnet';
 local com = import 'lib/commodore.libjsonnet';
+local kap = import 'lib/kapitan.libjsonnet';
 
 // The hiera parameters for the component
 local inv = kap.inventory();

@@ -26,6 +26,12 @@ local pullSecret =
 // see: https://docs.docker.com/registry/configuration/
 local config = params.registry.config {
   version: '0.1',
+  [if params.htpasswd != null then 'auth']+: {
+    htpasswd: {
+      realm: 'docker-registry-realm',
+      path: '/etc/docker/registry/htpasswd',
+    },
+  },
   http+: {
     debug: {
       addr: '0.0.0.0:6000',
@@ -65,15 +71,19 @@ local registryConfig = kube.Secret('registry-config') {
   },
   stringData: {
     'config.yml': std.manifestYamlDoc(config),
+    [if params.htpasswd != null then 'htpasswd']: params.htpasswd,
   },
 };
 
 local registryDeployment = kube.Deployment('registry') {
   metadata+: {
-    namespace: params.namespace,
+    annotations+: {
+      'checksum/config': std.md5(std.manifestJsonMinified(registryConfig.data)),
+    },
     labels: commonLabels {
       'app.kubernetes.io/component': 'registry',
     },
+    namespace: params.namespace,
   },
   spec+: {
     replicas: std.get(params, 'replicas', params.registry.replicas),
