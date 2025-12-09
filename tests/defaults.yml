@@ -20,6 +20,8 @@ parameters:
       customAnnotations: {}
 
   registry_cache:
+    namespaceLabels:
+      openshift.io/cluster-monitoring: 'true'
     rules:
       test:
         "alert:SomeAlert":

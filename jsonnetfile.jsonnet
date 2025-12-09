@@ -1,7 +1,6 @@
-local cmo_version = std.extVar('cmo_version');
 {
   version: 1,
-  dependencies: std.prune([
+  dependencies: [
     {
       source: {
         git: {
@@ -12,6 +11,6 @@ local cmo_version = std.extVar('cmo_version');
       version: 'main',
       name: 'syn',
     },
-  ]),
+  ],
   legacyImports: true,
 }

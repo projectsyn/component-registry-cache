@@ -4,6 +4,7 @@ parameters:
       multi_tenant: true
 
     namespace: syn-registry-cache
+    namespaceLabels: {}
 
     images:
       registry:
