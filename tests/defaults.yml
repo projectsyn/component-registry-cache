@@ -1,3 +1,31 @@
-# Overwrite parameters here
+applications:
+  - openshift4-monitoring
 
-# parameters: {...}
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/appuio/component-openshift4-monitoring/master/lib/openshift4-monitoring-alert-patching.libsonnet
+        output_path: vendor/lib/alert-patching.libsonnet
+      - type: https
+        source: https://raw.githubusercontent.com/appuio/component-openshift4-monitoring/master/lib/openshift4-monitoring-prom.libsonnet
+        output_path: vendor/lib/prom.libsonnet
+
+  facts:
+    distribution: openshift4
+
+  openshift4_monitoring:
+    alerts:
+      ignoreNames: []
+      customAnnotations: {}
+
+  registry_cache:
+    namespaceLabels:
+      openshift.io/cluster-monitoring: 'true'
+    rules:
+      test:
+        "alert:SomeAlert":
+          expr: 'registry_http_request_duration_seconds_sum > 0.1'
+          for: '30m'
+          labels:
+            severity: 'warning'

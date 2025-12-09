@@ -2,6 +2,7 @@
 local kube = import 'kube-ssa-compat.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
+local prom = import 'lib/prom.libsonnet';
 local inv = kap.inventory();
 // The hiera parameters for the component
 local params = inv.parameters.registry_cache;
@@ -26,7 +27,7 @@ local pullSecret =
 local config = params.registry.config {
   version: '0.1',
   http+: {
-    [if params.redis.enabled then 'debug']: {
+    debug: {
       addr: '0.0.0.0:6000',
       prometheus: {
         enabled: true,
@@ -89,6 +90,9 @@ local registryDeployment = kube.Deployment('registry') {
               http: {
                 containerPort: 5000,
               },
+              metrics: {
+                containerPort: 6000,
+              },
             },
             volumeMounts_: {
               config: {
@@ -126,8 +130,46 @@ local registryService = kube.Service('registry') {
     ports: [ {
       name: 'http',
       port: 5000,
+    }, {
+      name: 'metrics',
+      port: 6000,
     } ],
     selector: {
+      'app.kubernetes.io/component': 'registry',
+    },
+  },
+};
+
+local registryMonitor = kube._Object('monitoring.coreos.com/v1', 'ServiceMonitor', 'registry-cache') {
+  metadata+: {
+    namespace: params.namespace,
+    labels: commonLabels {
+      'app.kubernetes.io/component': 'registry',
+    },
+  },
+  spec: {
+    endpoints: [ {
+      port: 'metrics',
+      path: '/metrics',
+      interval: '60s',
+      scrapeTimeout: '30s',
+    } ],
+    jobLabel: 'registry-cache',
+    namespaceSelector: {
+      matchNames: [ params.namespace ],
+    },
+    selector: {
+      matchLabels: commonLabels {
+        'app.kubernetes.io/component': 'registry',
+      },
+    },
+  },
+};
+
+local registryAlerts = prom.generateRules('registry-cache', params.rules) {
+  metadata+: {
+    namespace: params.namespace,
+    labels: commonLabels {
       'app.kubernetes.io/component': 'registry',
     },
   },
@@ -200,5 +242,8 @@ else
   registryConfig,
   registryDeployment,
   registryService,
+  registryMonitor,
   registryExpose,
-] + if params.imagePullSecret != null then [ registryPullSecret ] else []
+]
++ if std.length(params.rules) > 0 then [ registryAlerts ] else []
+                                                               + if params.imagePullSecret != null then [ registryPullSecret ] else []

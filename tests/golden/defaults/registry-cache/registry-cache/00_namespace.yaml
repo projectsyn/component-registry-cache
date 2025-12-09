@@ -5,4 +5,5 @@ metadata:
     app.kubernetes.io/managed-by: commodore
     app.kubernetes.io/name: registry-cache
     app.kubernetes.io/part-of: syn
+    openshift.io/cluster-monitoring: 'true'
   name: syn-registry-cache
