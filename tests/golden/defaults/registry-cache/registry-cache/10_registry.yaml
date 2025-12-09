@@ -185,17 +185,25 @@ spec:
         - dockerhub.example.com
       secretName: registry-tls
 ---
-apiVersion: v1
-data: {}
-kind: Secret
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
 metadata:
   labels:
     app.kubernetes.io/component: registry
     app.kubernetes.io/managed-by: commodore
-    app.kubernetes.io/name: registry-pull-secret
+    app.kubernetes.io/name: registry-cache
     app.kubernetes.io/part-of: syn
-  name: registry-pull-secret
+  name: registry-cache
   namespace: syn-registry-cache
-stringData:
-  .dockerconfigjson: t-silent-test-1234/c-green-test-1234/registry-cache/image_pull_secret
-type: kubernetes.io/dockerconfigjson
+spec:
+  groups:
+    - name: test
+      rules:
+        - alert: SomeAlert
+          annotations: {}
+          expr: registry_http_request_duration_seconds_sum > 0.1
+          for: 30m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: registry-cache
