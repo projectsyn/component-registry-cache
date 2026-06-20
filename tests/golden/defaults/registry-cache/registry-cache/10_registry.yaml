@@ -82,7 +82,7 @@ spec:
             - serve
             - /etc/distribution/config.yml
           env: []
-          image: docker.io/library/registry:3.0.0
+          image: docker.io/library/registry:3.1.1
           imagePullPolicy: IfNotPresent
           name: registry
           ports:
