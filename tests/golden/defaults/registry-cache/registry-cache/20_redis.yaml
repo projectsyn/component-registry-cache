@@ -57,7 +57,7 @@ spec:
           command:
             - redis-server
           env: []
-          image: docker.io/library/redis:8.4.4
+          image: docker.io/library/redis:8.4.5
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 5
