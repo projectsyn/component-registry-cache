@@ -10,7 +10,7 @@ parameters:
       registry:
         registry: docker.io
         repository: library/registry
-        tag: '3.0.0'
+        tag: '3.1.1'
       redis:
         registry: docker.io
         repository: library/redis
