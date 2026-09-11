@@ -1,8 +1,8 @@
 // main template for registry-cache
 local kube = import 'kube-ssa-compat.libsonnet';
+local alertpatching = import 'lib/alert-patching.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
-local prom = import 'lib/prom.libsonnet';
 local inv = kap.inventory();
 // The hiera parameters for the component
 local params = inv.parameters.registry_cache;
@@ -176,12 +176,17 @@ local registryMonitor = kube._Object('monitoring.coreos.com/v1', 'ServiceMonitor
   },
 };
 
-local registryAlerts = prom.generateRules('registry-cache', params.rules) {
+local alertGroups = alertpatching.renderGroups(params.rules);
+
+local registryAlerts = kube._Object('monitoring.coreos.com/v1', 'PrometheusRule', 'registry-cache') {
   metadata+: {
     namespace: params.namespace,
     labels: commonLabels {
       'app.kubernetes.io/component': 'registry',
     },
+  },
+  spec: {
+    groups: alertGroups,
   },
 };
 
@@ -248,12 +253,13 @@ else
   error 'parameters.registry_cache.expose_type must be either "route" or "ingress"'
 ;
 
+local has_monitoring = std.member(inv.applications, 'prometheus') || std.member(inv.applications, 'openshift4-monitoring');
+local has_alerts = std.length(alertGroups) > 0;
+
 [
   registryConfig,
   registryDeployment,
   registryService,
   registryMonitor,
   registryExpose,
-]
-+ if std.length(params.rules) > 0 then [ registryAlerts ] else []
-                                                               + if params.imagePullSecret != null then [ registryPullSecret ] else []
+] + if has_alerts && has_monitoring then [ registryAlerts ] else [] + if params.imagePullSecret != null then [ registryPullSecret ] else []
