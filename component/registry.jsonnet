@@ -248,12 +248,13 @@ else
   error 'parameters.registry_cache.expose_type must be either "route" or "ingress"'
 ;
 
+local has_monitoring = std.member(inv.applications, 'prometheus') || std.member(inv.applications, 'openshift4-monitoring');
+local has_alerts = std.length(params.rules) > 0;
+
 [
   registryConfig,
   registryDeployment,
   registryService,
   registryMonitor,
   registryExpose,
-]
-+ if std.length(params.rules) > 0 then [ registryAlerts ] else []
-                                                               + if params.imagePullSecret != null then [ registryPullSecret ] else []
+] + if has_monitoring && has_alerts then [ registryAlerts ] else [] + if params.imagePullSecret != null then [ registryPullSecret ] else []
