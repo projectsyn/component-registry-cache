@@ -124,12 +124,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: proxy_password
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
             - name: PROXY_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: proxy_username
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
           image: quay.io/appuio/oc:v4.21
           imagePullPolicy: IfNotPresent
           name: render-config
