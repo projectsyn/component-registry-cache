@@ -29,7 +29,7 @@ local config = params.registry.config {
   [if params.htpasswd != null then 'auth']+: {
     htpasswd: {
       realm: 'docker-registry-realm',
-      path: '/etc/docker/registry/htpasswd',
+      path: '/etc/distribution/htpasswd',
     },
   },
   http+: {
