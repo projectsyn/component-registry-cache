@@ -257,4 +257,6 @@ local has_alerts = std.length(params.rules) > 0;
   registryService,
   registryMonitor,
   registryExpose,
-] + if has_monitoring && has_alerts then [ registryAlerts ] else [] + if params.imagePullSecret != null then [ registryPullSecret ] else []
+]
++ (if has_monitoring && has_alerts then [ registryAlerts ] else [])
++ (if params.imagePullSecret != null then [ registryPullSecret ] else [])
