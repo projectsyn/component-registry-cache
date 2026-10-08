@@ -124,12 +124,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: proxy_password
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
             - name: PROXY_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: proxy_username
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
           image: quay.io/appuio/oc:v4.21
           imagePullPolicy: IfNotPresent
           name: render-config
@@ -228,22 +228,6 @@ spec:
     - hosts:
         - dockerhub.example.com
       secretName: registry-tls
----
-apiVersion: v1
-data: {}
-kind: Secret
-metadata:
-  labels:
-    app.kubernetes.io/component: registry
-    app.kubernetes.io/managed-by: commodore
-    app.kubernetes.io/name: registry-cache
-    app.kubernetes.io/part-of: syn
-  name: registry-config-secrets
-  namespace: syn-registry-cache
-stringData:
-  proxy_password: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_password
-  proxy_username: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username
-type: Opaque
 ---
 apiVersion: v1
 data: {}
