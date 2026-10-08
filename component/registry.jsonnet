@@ -131,6 +131,24 @@ local registryConfigSecrets =
     },
   };
 
+local render_command = (
+  if configHasCreds || params.externalProxyCredentialsSecret != null then
+    |||
+      yq \
+        '.proxy.username=strenv(PROXY_USERNAME)|.proxy.password=strenv(PROXY_PASSWORD)' \
+        %(input)s/config.yml > %(output)s/config.yml
+    |||
+  else
+    'cp %(input)s/config.yml %(output)s/config.yml'
+) % {
+  input: config_mount_path,
+  output: rendered_config_mount_path,
+};
+local proxyCredentialsSecretName =
+  if params.externalProxyCredentialsSecret != null then params.externalProxyCredentialsSecret
+  else if configHasCreds then registryConfigSecrets.metadata.name
+  else null;
+
 local registryDeployment = kube.Deployment('registry') {
   metadata+: {
     annotations+: {
@@ -180,25 +198,18 @@ local registryDeployment = kube.Deployment('registry') {
             command: [
               'sh',
               '-c',
-              |||
-                yq \
-                  '.proxy.username=strenv(PROXY_USERNAME)|.proxy.password=strenv(PROXY_PASSWORD)' \
-                  %(input)s/config.yml > %(output)s/config.yml
-              ||| % {
-                input: config_mount_path,
-                output: rendered_config_mount_path,
-              },
+              render_command,
             ],
             env_: {
-              PROXY_USERNAME: {
+              [if proxyCredentialsSecretName != null then 'PROXY_USERNAME']: {
                 secretKeyRef: {
-                  name: registryConfigSecrets.metadata.name,
+                  name: proxyCredentialsSecretName,
                   key: 'proxy_username',
                 },
               },
-              PROXY_PASSWORD: {
+              [if proxyCredentialsSecretName != null then 'PROXY_PASSWORD']: {
                 secretKeyRef: {
-                  name: registryConfigSecrets.metadata.name,
+                  name: proxyCredentialsSecretName,
                   key: 'proxy_password',
                 },
               },
