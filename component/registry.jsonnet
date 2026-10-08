@@ -23,33 +23,52 @@ local pullSecret =
   else
     params.imagePullSecretName;
 
+local config_mount_path = '/etc/distribution';
+local htpasswd_mount_path = '/etc/distribution-htpasswd';
+
 // see: https://docs.docker.com/registry/configuration/
-local config = params.registry.config {
-  version: '0.1',
-  [if params.htpasswd != null then 'auth']+: {
-    htpasswd: {
-      realm: 'docker-registry-realm',
-      path: '/etc/distribution/htpasswd',
-    },
-  },
-  http+: {
-    debug: {
-      addr: '0.0.0.0:6000',
-      prometheus: {
-        enabled: true,
-        path: '/metrics',
+local config =
+  local auth =
+    if params.htpasswd != null && params.externalHtpasswdSecret != null then
+      error 'One of `htpasswd` and `externalHtpasswdSecret` must be null!'
+    else if params.htpasswd != null then {
+      auth: {
+        htpasswd: {
+          realm: 'docker-registry-realm',
+          path: '%s/htpasswd' % config_mount_path,
+        },
+      },
+    }
+    else if params.externalHtpasswdSecret != null then {
+      auth: {
+        htpasswd: {
+          realm: 'docker-registry-realm',
+          path: '%s/htpasswd' % htpasswd_mount_path,
+        },
+      },
+    }
+    else {};
+
+  params.registry.config + auth {
+    version: '0.1',
+    http+: {
+      debug: {
+        addr: '0.0.0.0:6000',
+        prometheus: {
+          enabled: true,
+          path: '/metrics',
+        },
       },
     },
-  },
-  storage+: {
-    cache: {
-      blobdescriptor: if params.redis.enabled then 'redis' else 'inmemory',
+    storage+: {
+      cache: {
+        blobdescriptor: if params.redis.enabled then 'redis' else 'inmemory',
+      },
     },
-  },
-  [if params.redis.enabled then 'redis']: {
-    addrs: [ 'redis:6379' ],
-  },
-};
+    [if params.redis.enabled then 'redis']: {
+      addrs: [ 'redis:6379' ],
+    },
+  };
 
 local registryPullSecret = kube.Secret('registry-pull-secret') {
   metadata+: {
@@ -94,7 +113,7 @@ local registryDeployment = kube.Deployment('registry') {
             image: '%(registry)s/%(repository)s:%(tag)s' % params.images.registry,
             args: [
               'serve',
-              '/etc/distribution/config.yml',
+              '%s/config.yml' % config_mount_path,
             ],
             ports_: {
               http: {
@@ -106,7 +125,10 @@ local registryDeployment = kube.Deployment('registry') {
             },
             volumeMounts_: {
               config: {
-                mountPath: '/etc/distribution',
+                mountPath: config_mount_path,
+              },
+              [if params.externalHtpasswdSecret != null then 'external_htpasswd']: {
+                mountPath: htpasswd_mount_path,
               },
             },
             resources: params.registry.resources,
@@ -121,6 +143,11 @@ local registryDeployment = kube.Deployment('registry') {
           config: {
             secret: {
               secretName: registryConfig.metadata.name,
+            },
+          },
+          [if params.externalHtpasswdSecret != null then 'external_htpasswd']: {
+            secret: {
+              secretName: params.externalHtpasswdSecret,
             },
           },
         },
