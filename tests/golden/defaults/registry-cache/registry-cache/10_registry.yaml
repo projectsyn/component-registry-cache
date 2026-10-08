@@ -21,9 +21,7 @@ stringData:
       "host": "https://dockerhub.example.com"
       "secret": "t-silent-test-1234/c-green-test-1234/registry-cache/http_secret"
     "proxy":
-      "password": "t-silent-test-1234/c-green-test-1234/registry-cache/proxy_password"
       "remoteurl": "https://registry-1.docker.io"
-      "username": "t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username"
     "redis":
       "addrs":
       - "redis:6379"
@@ -80,7 +78,7 @@ spec:
       containers:
         - args:
             - serve
-            - /etc/distribution/config.yml
+            - /run/distribution/config.yml
           env: []
           image: docker.io/library/registry:3.1.2
           imagePullPolicy: IfNotPresent
@@ -102,14 +100,49 @@ spec:
           volumeMounts:
             - mountPath: /etc/distribution
               name: config
+            - mountPath: /run/distribution
+              name: runconfig
       imagePullSecrets:
         - name: registry-pull-secret
-      initContainers: []
+      initContainers:
+        - args: []
+          command:
+            - sh
+            - -c
+            - |
+              yq \
+                '.proxy.username=strenv(PROXY_USERNAME)|.proxy.password=strenv(PROXY_PASSWORD)' \
+                /etc/distribution/config.yml > /run/distribution/config.yml
+          env:
+            - name: PROXY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: proxy_password
+                  name: registry-config-secrets
+            - name: PROXY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: proxy_username
+                  name: registry-config-secrets
+          image: quay.io/appuio/oc:v4.21
+          imagePullPolicy: IfNotPresent
+          name: render-config
+          ports: []
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/distribution
+              name: config
+            - mountPath: /run/distribution
+              name: runconfig
       terminationGracePeriodSeconds: 30
       volumes:
         - name: config
           secret:
             secretName: registry-config
+        - emptyDir:
+            medium: Memory
+          name: runconfig
 ---
 apiVersion: v1
 kind: Service
@@ -186,6 +219,22 @@ spec:
     - hosts:
         - dockerhub.example.com
       secretName: registry-tls
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: registry-config-secrets
+  namespace: syn-registry-cache
+stringData:
+  proxy_password: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_password
+  proxy_username: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username
+type: Opaque
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
