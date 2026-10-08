@@ -25,6 +25,22 @@ local pullSecret =
 
 local config_mount_path = '/etc/distribution';
 local htpasswd_mount_path = '/etc/distribution-htpasswd';
+local rendered_config_mount_path = '/run/distribution';
+
+local configHasCreds =
+  local has_username =
+    std.objectHas(params.registry.config.proxy, 'username')
+    && params.registry.config.proxy.username != null;
+  local has_password =
+    std.objectHas(params.registry.config.proxy, 'password')
+    && params.registry.config.proxy.password != null;
+
+  local has_creds = has_username && has_password;
+
+  if (has_username || has_password) && !has_creds then
+    error 'The component expects that both config.proxy.username and config.proxy.password are configured if either is present.'
+  else
+    has_creds;
 
 // see: https://docs.docker.com/registry/configuration/
 local config =
@@ -65,6 +81,12 @@ local config =
         blobdescriptor: if params.redis.enabled then 'redis' else 'inmemory',
       },
     },
+    // NOTE(sg): these fields are injected into the config by the init
+    // container.
+    proxy+: {
+      username:: '',
+      password:: '',
+    },
     [if params.redis.enabled then 'redis']: {
       addrs: [ 'redis:6379' ],
     },
@@ -94,6 +116,21 @@ local registryConfig = kube.Secret('registry-config') {
   },
 };
 
+local registryConfigSecrets =
+
+  kube.Secret('registry-config-secrets') {
+    metadata+: {
+      namespace: params.namespace,
+      labels: commonLabels {
+        'app.kubernetes.io/component': 'registry',
+      },
+    },
+    stringData: {
+      proxy_username: params.registry.config.proxy.username,
+      proxy_password: params.registry.config.proxy.password,
+    },
+  };
+
 local registryDeployment = kube.Deployment('registry') {
   metadata+: {
     annotations+: {
@@ -113,7 +150,7 @@ local registryDeployment = kube.Deployment('registry') {
             image: '%(registry)s/%(repository)s:%(tag)s' % params.images.registry,
             args: [
               'serve',
-              '%s/config.yml' % config_mount_path,
+              '%s/config.yml' % rendered_config_mount_path,
             ],
             ports_: {
               http: {
@@ -124,6 +161,9 @@ local registryDeployment = kube.Deployment('registry') {
               },
             },
             volumeMounts_: {
+              runconfig: {
+                mountPath: rendered_config_mount_path,
+              },
               config: {
                 mountPath: config_mount_path,
               },
@@ -132,6 +172,45 @@ local registryDeployment = kube.Deployment('registry') {
               },
             },
             resources: params.registry.resources,
+          },
+        },
+        initContainers_+: {
+          render_config: kube.Container('render-config') {
+            image: '%(registry)s/%(repository)s:%(tag)s' % params.images.oc,
+            command: [
+              'sh',
+              '-c',
+              |||
+                yq \
+                  '.proxy.username=strenv(PROXY_USERNAME)|.proxy.password=strenv(PROXY_PASSWORD)' \
+                  %(input)s/config.yml > %(output)s/config.yml
+              ||| % {
+                input: config_mount_path,
+                output: rendered_config_mount_path,
+              },
+            ],
+            env_: {
+              PROXY_USERNAME: {
+                secretKeyRef: {
+                  name: registryConfigSecrets.metadata.name,
+                  key: 'proxy_username',
+                },
+              },
+              PROXY_PASSWORD: {
+                secretKeyRef: {
+                  name: registryConfigSecrets.metadata.name,
+                  key: 'proxy_password',
+                },
+              },
+            },
+            volumeMounts_: {
+              runconfig: {
+                mountPath: rendered_config_mount_path,
+              },
+              config: {
+                mountPath: config_mount_path,
+              },
+            },
           },
         },
         [if pullSecret != null then 'imagePullSecrets']: [
@@ -143,6 +222,11 @@ local registryDeployment = kube.Deployment('registry') {
           config: {
             secret: {
               secretName: registryConfig.metadata.name,
+            },
+          },
+          runconfig: {
+            emptyDir: {
+              medium: 'Memory',
             },
           },
           [if params.externalHtpasswdSecret != null then 'external_htpasswd']: {
@@ -285,5 +369,6 @@ local has_alerts = std.length(params.rules) > 0;
   registryMonitor,
   registryExpose,
 ]
++ (if configHasCreds then [ registryConfigSecrets ] else [])
 + (if has_monitoring && has_alerts then [ registryAlerts ] else [])
 + (if params.imagePullSecret != null then [ registryPullSecret ] else [])
