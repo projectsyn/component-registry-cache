@@ -1,13 +1,13 @@
 {
   "template": "https://github.com/projectsyn/commodore-component-template.git",
-  "commit": "5ae57721558399419f867334e31d23a7f7a892ba",
+  "commit": "76c8c216d784b71423c07f0ab9c3178be479d639",
   "checkout": "main",
   "context": {
     "cookiecutter": {
       "name": "registry-cache",
       "slug": "registry-cache",
       "parameter_key": "registry_cache",
-      "test_cases": "defaults",
+      "test_cases": "defaults external-config",
       "add_lib": "n",
       "add_pp": "n",
       "add_golden": "y",
@@ -25,7 +25,7 @@
       "github_name": "component-registry-cache",
       "github_url": "https://github.com/projectsyn/component-registry-cache",
       "_template": "https://github.com/projectsyn/commodore-component-template.git",
-      "_commit": "5ae57721558399419f867334e31d23a7f7a892ba"
+      "_commit": "76c8c216d784b71423c07f0ab9c3178be479d639"
     }
   },
   "directory": null
