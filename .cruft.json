@@ -7,7 +7,7 @@
       "name": "registry-cache",
       "slug": "registry-cache",
       "parameter_key": "registry_cache",
-      "test_cases": "defaults",
+      "test_cases": "defaults external-config",
       "add_lib": "n",
       "add_pp": "n",
       "add_golden": "y",

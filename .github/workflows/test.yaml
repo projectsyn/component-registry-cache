@@ -32,6 +32,7 @@ jobs:
       matrix:
         instance:
           - defaults
+          - external-config
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -47,6 +48,7 @@ jobs:
       matrix:
         instance:
           - defaults
+          - external-config
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
