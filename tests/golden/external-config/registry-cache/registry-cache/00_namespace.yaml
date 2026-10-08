@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: syn-registry-cache

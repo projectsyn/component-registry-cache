@@ -1,0 +1,122 @@
+apiVersion: v1
+data:
+  redis.conf: |-
+    # Disable persistence entirely
+    save ""
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: redis-config
+  namespace: syn-registry-cache
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+  name: redis
+  namespace: syn-registry-cache
+spec:
+  minReadySeconds: 30
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+      app.kubernetes.io/managed-by: commodore
+      app.kubernetes.io/name: registry-cache
+      app.kubernetes.io/part-of: syn
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app.kubernetes.io/component: redis
+        app.kubernetes.io/managed-by: commodore
+        app.kubernetes.io/name: registry-cache
+        app.kubernetes.io/part-of: syn
+    spec:
+      containers:
+        - args:
+            - /etc/redis/redis.conf
+            - --maxmemory
+            - '1073741824'
+            - --maxmemory-policy
+            - allkeys-lru
+          command:
+            - redis-server
+          env: []
+          image: docker.io/library/redis:8.10.2
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: 6379
+            timeoutSeconds: 5
+          name: redis
+          ports:
+            - containerPort: 6379
+              name: http
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/redis
+              name: config
+      imagePullSecrets:
+        - name: registry-pull-secret
+      initContainers: []
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: redis-config
+          name: config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-cache
+    app.kubernetes.io/part-of: syn
+    name: syn-registry-cache
+  name: redis
+  namespace: syn-registry-cache
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app.kubernetes.io/component: redis
+  type: ClusterIP
