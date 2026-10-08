@@ -21,6 +21,7 @@ parameters:
 
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
     htpasswd: null
+    externalHtpasswdSecret: null
     imagePullSecret:
       type: 'kubernetes.io/dockerconfigjson'
       stringData:
