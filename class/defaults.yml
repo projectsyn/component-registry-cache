@@ -15,12 +15,18 @@ parameters:
         registry: docker.io
         repository: library/redis
         tag: '8.10.2'
+      oc:
+        registry: quay.io
+        repository: appuio/oc
+        tag: v4.21
 
     expose_type: ingress
     fqdn: dockerhub.example.com
 
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
     htpasswd: null
+    externalHtpasswdSecret: null
+    externalProxyCredentialsSecret: null
     imagePullSecret:
       type: 'kubernetes.io/dockerconfigjson'
       stringData:

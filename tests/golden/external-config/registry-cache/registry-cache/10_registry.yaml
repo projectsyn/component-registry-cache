@@ -11,6 +11,10 @@ metadata:
   namespace: syn-registry-cache
 stringData:
   config.yml: |-
+    "auth":
+      "htpasswd":
+        "path": "/etc/distribution-htpasswd/htpasswd"
+        "realm": "docker-registry-realm"
     "http":
       "addr": "0.0.0.0:5000"
       "debug":
@@ -100,6 +104,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/distribution
               name: config
+            - mountPath: /etc/distribution-htpasswd
+              name: external-htpasswd
             - mountPath: /run/distribution
               name: runconfig
       imagePullSecrets:
@@ -118,12 +124,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: proxy_password
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
             - name: PROXY_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: proxy_username
-                  name: registry-config-secrets
+                  name: external-proxy-credentials
           image: quay.io/appuio/oc:v4.21
           imagePullPolicy: IfNotPresent
           name: render-config
@@ -140,6 +146,9 @@ spec:
         - name: config
           secret:
             secretName: registry-config
+        - name: external-htpasswd
+          secret:
+            secretName: external-htpasswd
         - emptyDir:
             medium: Memory
           name: runconfig
@@ -235,29 +244,6 @@ stringData:
   proxy_password: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_password
   proxy_username: t-silent-test-1234/c-green-test-1234/registry-cache/proxy_username
 type: Opaque
----
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  labels:
-    app.kubernetes.io/component: registry
-    app.kubernetes.io/managed-by: commodore
-    app.kubernetes.io/name: registry-cache
-    app.kubernetes.io/part-of: syn
-  name: registry-cache
-  namespace: syn-registry-cache
-spec:
-  groups:
-    - name: test
-      rules:
-        - alert: SomeAlert
-          annotations: {}
-          expr: registry_http_request_duration_seconds_sum > 0.1
-          for: 30m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: registry-cache
 ---
 apiVersion: v1
 data: {}
