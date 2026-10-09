@@ -209,3 +209,18 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: registry-cache
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/managed-by: commodore
+    app.kubernetes.io/name: registry-pull-secret
+    app.kubernetes.io/part-of: syn
+  name: registry-pull-secret
+  namespace: syn-registry-cache
+stringData:
+  .dockerconfigjson: t-silent-test-1234/c-green-test-1234/registry-cache/image_pull_secret
+type: kubernetes.io/dockerconfigjson
