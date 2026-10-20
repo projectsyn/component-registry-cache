@@ -6,7 +6,7 @@ The parent key for all of the following parameters is `registry_cache`.
 
 [horizontal]
 type:: string
-default:: `syn-registry-cache`
+default:: `syn-${_instance}`
 
 The namespace in which to deploy this component.
 

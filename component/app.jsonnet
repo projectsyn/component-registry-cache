@@ -3,7 +3,8 @@ local inv = kap.inventory();
 local params = inv.parameters.registry_cache;
 local argocd = import 'lib/argocd.libjsonnet';
 
-local app = argocd.App('registry-cache', params.namespace) {
+local instance = inv.parameters._instance;
+local app = argocd.App(instance, params.namespace, base='registry-cache') {
   spec+: {
     syncPolicy+: {
       syncOptions+: [
@@ -18,5 +19,5 @@ local appPath =
   if project == 'syn' then 'apps' else 'apps-%s' % project;
 
 {
-  ['%s/registry-cache' % appPath]: app,
+  ['%s/%s' % [ appPath, instance ]]: app,
 }
