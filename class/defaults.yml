@@ -3,7 +3,7 @@ parameters:
     =_metadata:
       multi_tenant: true
 
-    namespace: syn-registry-cache
+    namespace: syn-${_instance}
     namespaceLabels: {}
 
     images:
