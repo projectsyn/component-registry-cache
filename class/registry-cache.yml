@@ -2,10 +2,10 @@ parameters:
   kapitan:
     compile:
       - input_paths:
-          - registry-cache/component/app.jsonnet
+          - ${_base_directory}/component/app.jsonnet
         input_type: jsonnet
         output_path: .
       - input_paths:
-          - registry-cache/component/main.jsonnet
+          - ${_base_directory}/component/main.jsonnet
         input_type: jsonnet
-        output_path: registry-cache/
+        output_path: ${_instance}/
