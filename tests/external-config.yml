@@ -1,0 +1,9 @@
+parameters:
+  registry_cache:
+    externalHtpasswdSecret: external-htpasswd
+    externalProxyCredentialsSecret: external-proxy-credentials
+    registry:
+      config:
+        proxy:
+          username: null
+          password: null

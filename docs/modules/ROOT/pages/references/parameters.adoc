@@ -38,6 +38,27 @@ default:: `null`
 
 The content of the htpasswd file, used to secure the registry-cache.
 
+NOTE: The component will raise an error if both `htpasswd` and `externalHtpasswdSecret` are non-null.
+
+== `externalHtpasswdSecret`
+
+[horizontal]
+type:: string
+default:: `null`
+
+The name of an externally managed secret which holds a htpasswd file that should be used to secure the registry cache.
+
+NOTE: The component will raise an error if both `htpasswd` and `externalHtpasswdSecret` are non-null.
+
+== `externalProxyCredentialsSecret`
+
+[horizontal]
+type:: string
+default:: `null`
+
+The name of an externally managed secret which holds username and password used to authenticate to the upstream (proxied) registry.
+
+NOTE: The component will raise an error if both `registry.config.proxy.username` and `registry.config.proxy.password` and `externalProxyCredentialsSecret` are non-null.
 
 == `imagePullSecretName`
 
@@ -151,6 +172,15 @@ default:: Vault reference
 
 S3 credentials for storing image blobs.
 
+=== `registry.config.proxy.username`, `registry.config.proxy.password`
+
+[horizontal]
+type:: string
+default:: Vault reference
+
+Vault references to the username and password for the upstream (proxied) registry.
+
+NOTE: The component will raise an error if both `registry.config.proxy.username` and `registry.config.proxy.password` and `externalProxyCredentialsSecret` are non-null.
 
 == `http_secret`
 
