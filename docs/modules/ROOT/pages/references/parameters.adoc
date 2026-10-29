@@ -140,6 +140,13 @@ Redis configuration.
 
 Configuration of the Registry component.
 
+[TIP]
+====
+Component-visible changes to `registry.config` will trigger a restart of the registry deployment pods.
+
+Notably, updating a secret in Vault won't trigger a restart of the registry deployment pods, since Vault updates aren't visible in the component.
+====
+
 === `registry.replicas`
 
 [horizontal]

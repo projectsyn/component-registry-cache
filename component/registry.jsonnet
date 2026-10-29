@@ -153,9 +153,6 @@ local proxyCredentialsSecretName =
 
 local registryDeployment = kube.Deployment('registry') {
   metadata+: {
-    annotations+: {
-      'checksum/config': std.md5(std.manifestJsonMinified(registryConfig.data)),
-    },
     labels: commonLabels {
       'app.kubernetes.io/component': 'registry',
     },
@@ -164,6 +161,14 @@ local registryDeployment = kube.Deployment('registry') {
   spec+: {
     replicas: std.get(params, 'replicas', params.registry.replicas),
     template+: {
+      metadata+: {
+        annotations+: {
+          'checksum/registry-config':
+            std.md5(std.manifestJsonMinified(registryConfig.stringData)),
+          [if configHasCreds then 'checksum/registry-config-secrets']:
+            std.md5(std.manifestJsonMinified(registryConfigSecrets.stringData)),
+        },
+      },
       spec+: {
         containers_+: {
           registry: kube.Container('registry') {
