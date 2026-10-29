@@ -42,8 +42,6 @@ type: Opaque
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    checksum/config: 99914b932bd37a50b983c5e7c90ae93b
   labels:
     app.kubernetes.io/component: registry
     app.kubernetes.io/managed-by: commodore
@@ -68,7 +66,9 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations: {}
+      annotations:
+        checksum/registry-config: a0a499ec6a8748ba842e8412949f0dfe
+        checksum/registry-config-secrets: 0b51f9383d6232c13b08983ac98f7f31
       labels:
         app.kubernetes.io/component: registry
         app.kubernetes.io/managed-by: commodore
