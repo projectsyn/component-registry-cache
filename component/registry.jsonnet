@@ -42,11 +42,19 @@ local configHasCreds =
   else
     has_creds;
 
+local htpasswdEnabledCount =
+  local bool_as_int(b) = if b then 1 else 0;
+  std.sum(std.map(bool_as_int, [
+    params.htpasswd != null,
+    params.externalHtpasswdSecret != null,
+    params.projectsynHtpasswd.enabled,
+  ]));
+
 // see: https://docs.docker.com/registry/configuration/
 local config =
   local auth =
-    if params.htpasswd != null && params.externalHtpasswdSecret != null then
-      error 'One of `htpasswd` and `externalHtpasswdSecret` must be null!'
+    if htpasswdEnabledCount > 1 then
+      error 'At most one of `htpasswd`, `externalHtpasswdSecret` and `projectsynHtpasswd.enabled` can be enabled!'
     else if params.htpasswd != null then {
       auth: {
         htpasswd: {
@@ -55,7 +63,7 @@ local config =
         },
       },
     }
-    else if params.externalHtpasswdSecret != null then {
+    else if params.externalHtpasswdSecret != null || params.projectsynHtpasswd.enabled then {
       auth: {
         htpasswd: {
           realm: 'docker-registry-realm',
@@ -195,6 +203,9 @@ local registryDeployment = kube.Deployment('registry') {
               [if params.externalHtpasswdSecret != null then 'external_htpasswd']: {
                 mountPath: htpasswd_mount_path,
               },
+              [if params.projectsynHtpasswd.enabled then 'projectsyn_htpasswd']: {
+                mountPath: htpasswd_mount_path,
+              },
             },
             resources: params.registry.resources,
           },
@@ -250,6 +261,11 @@ local registryDeployment = kube.Deployment('registry') {
           [if params.externalHtpasswdSecret != null then 'external_htpasswd']: {
             secret: {
               secretName: params.externalHtpasswdSecret,
+            },
+          },
+          [if params.projectsynHtpasswd.enabled then 'projectsyn_htpasswd']: {
+            secret: {
+              secretName: params.projectsynHtpasswd.secretName,
             },
           },
         },

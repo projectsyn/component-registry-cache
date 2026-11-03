@@ -26,6 +26,10 @@ parameters:
     http_secret: '?{vaultkv:${cluster:tenant}/${cluster:name}/registry-cache/http_secret}'
     htpasswd: null
     externalHtpasswdSecret: null
+    projectsynHtpasswd:
+      enabled: false
+      secretName: projectsyn-htpasswd
+      lieutenantInstances: {}
     externalProxyCredentialsSecret: null
     imagePullSecret:
       type: 'kubernetes.io/dockerconfigjson'

@@ -27,4 +27,6 @@ local redis = import 'redis.jsonnet';
   '00_namespace': namespace,
   '10_registry': registry,
   [if params.redis.enabled then '20_redis']: redis,
+  [if params.projectsynHtpasswd.enabled then '70_projectsyn_htpasswd']:
+    import 'projectsyn-htpasswd.libsonnet',
 }
