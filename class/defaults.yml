@@ -30,6 +30,7 @@ parameters:
       enabled: false
       secretName: projectsyn-htpasswd
       lieutenantInstances: {}
+      clusterTokenRefreshInterval: 1h
     externalProxyCredentialsSecret: null
     imagePullSecret:
       type: 'kubernetes.io/dockerconfigjson'

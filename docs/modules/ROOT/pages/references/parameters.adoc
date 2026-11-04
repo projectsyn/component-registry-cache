@@ -103,6 +103,20 @@ The token provided in field `token` must be a Kubernetes service account token b
 
 TIP: We recommend defining the token as a Vault reference.
 
+== `projectsynHtpasswd.clusterTokenRefreshInterval
+
+[horizontal]
+type:: string
+default:: `1h`
+
+This parameter configures how frequently the cluster Steward token secrets are fetched from the configured Lieutenant instances.
+
+TIP: If you require that the registry `htpasswd` is updated quickly after a cluster is registered on a configured Lieutenant instance, we recommend lowering this parameter from its default value of `1h`.
+
+The parameter must be specified as a Golang Duration string.
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+
+
 == `externalProxyCredentialsSecret`
 
 [horizontal]

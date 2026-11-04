@@ -58,7 +58,7 @@ local cluster_tokens_externalsecret = [
       namespace: params.namespace,
     },
     spec: {
-      refreshInterval: '1h',
+      refreshInterval: synhtpasswd.clusterTokenRefreshInterval,
       target: {
         name: token_secret_name,
         template: {
