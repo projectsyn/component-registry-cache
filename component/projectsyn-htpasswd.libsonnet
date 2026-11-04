@@ -175,6 +175,12 @@ local htpasswd_managed_resource =
   [
     esp.managedResource(synhtpasswd.secretName, params.namespace) {
       spec: {
+        applyOptions: {
+          // NOTE(sg): We set apply option force=true, so that the
+          // managedresource can properly revert external changes to the
+          // target secret and deployment annotation.
+          force: true,
+        },
         serviceAccountRef: {
           name: sa.metadata.name,
         },
