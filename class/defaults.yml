@@ -18,7 +18,7 @@ parameters:
       oc:
         registry: quay.io
         repository: appuio/oc
-        tag: v4.21
+        tag: v4.22
 
     expose_type: ingress
     fqdn: dockerhub.example.com
