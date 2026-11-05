@@ -38,7 +38,7 @@ default:: `null`
 
 The content of the htpasswd file, used to secure the registry-cache.
 
-NOTE: The component will raise an error if both `htpasswd` and `externalHtpasswdSecret` are non-null.
+NOTE: The component will raise an error if more than one of `htpasswd`, `externalHtpasswdSecret` and `projectsynHtpasswd.enabled` are non-null or true.
 
 == `externalHtpasswdSecret`
 
@@ -48,7 +48,74 @@ default:: `null`
 
 The name of an externally managed secret which holds a htpasswd file that should be used to secure the registry cache.
 
-NOTE: The component will raise an error if both `htpasswd` and `externalHtpasswdSecret` are non-null.
+NOTE: The component will raise an error if more than one of `htpasswd`, `externalHtpasswdSecret` and `projectsynHtpasswd.enabled` are non-null or true.
+
+== `projectsynHtpasswd`
+
+[horizontal]
+type:: dict
+
+This parameter allows users to configure a Project Syn-aware `htpasswd` secret for the registry.
+
+When enabled, the Project Syn-aware `htpasswd` file is rendered by a combination of External Secrets Operator resources and an Espejote `ManagedResource`.
+When enabled, the component configures the registry to mount the secret containing the Project Syn-aware `htpasswd` file.
+The Espejote `ManagedResource` renders the `htpasswd` file from the secret managed by External Secrets Operator and adds an annotation to the `registry` deployment to ensure the registry restarts and loads the updated `htpasswd` if there are any changes.
+
+The Project Syn-aware `htpasswd` file contains a username and password pair for each Project Syn cluster registered on each Lieutenant instance defined in parameter `projectsynHtpasswd.lieutenantInstances`.
+
+The username for each `htpasswd` entry is the cluster's Project Syn ID with the provided `userPrefix` associated with the cluster's Lieutenant instance.
+If field `userPrefix` is omitted, the user name is the cluster's Project Syn ID.
+We recommend setting field `userPrefix` if there's a chance that the configured Lieutenant instances could contain colliding cluster IDs.
+
+The password for each `htpasswd` entry is the SHA-256 sum of the cluster's Steward token.
+
+=== `projectsynHtpasswd.enabled`
+
+[horizontal]
+type:: boolean
+default:: `false`
+
+This parameter controls whether the Project Syn-aware `htpasswd` is rendered and configured in the registry deployment.
+
+NOTE: The component will raise an error if more than one of `htpasswd`, `externalHtpasswdSecret` and `projectsynHtpasswd.enabled` are non-null or true.
+
+=== `projectsynHtpasswd.secretName`
+
+[horizontal]
+type:: string
+default:: `projectsyn-htpasswd`
+
+The name of the secret which holds the Project Syn-aware `htpasswd`.
+
+TIP: The component also derives the name of most other resources that are part of the Project Syn-aware htpasswd logic from the value of this parameter.
+
+=== `projectsynHtpasswd.lieutenantInstances`
+
+[horizonal]
+type:: dict
+default:: `{}`
+
+The component expects the value of each entry of this parameter to have fields `kubernetesUrl` and `token`.
+Additionally, the component supports optional fields `userPrefix` and `lieutenantNamespace` for entries of this parameter.
+
+The component creates an External Secrets Operator `SecretStore` for each Lieutenant cluster specified in this parameter.
+The token provided in field `token` must be a Kubernetes service account token bound to a service account which is able to list all secrets in namespace `lieutenantNamespace` (or namespace `lieutenant` if this optional field isn't provided) on the cluster specified in `kubernetesUrl`.
+
+TIP: We recommend defining the token as a Vault reference.
+
+== `projectsynHtpasswd.clusterTokenRefreshInterval
+
+[horizontal]
+type:: string
+default:: `1h`
+
+This parameter configures how frequently the cluster Steward token secrets are fetched from the configured Lieutenant instances.
+
+TIP: If you require that the registry `htpasswd` is updated quickly after a cluster is registered on a configured Lieutenant instance, we recommend lowering this parameter from its default value of `1h`.
+
+The parameter must be specified as a Golang Duration string.
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+
 
 == `externalProxyCredentialsSecret`
 

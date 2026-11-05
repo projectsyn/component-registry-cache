@@ -33,6 +33,7 @@ jobs:
         instance:
           - defaults
           - external-config
+          - projectsyn-htpasswd
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -49,6 +50,7 @@ jobs:
         instance:
           - defaults
           - external-config
+          - projectsyn-htpasswd
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
